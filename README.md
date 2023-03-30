@@ -12,6 +12,8 @@ Etherjot enables you to effortlessly create a blog on Swarm. It takes care of th
 -   A running instance of [Bee](https://github.com/ethersphere/bee)
 -   A usable [postage batch](https://docs.ethswarm.org/docs/access-the-swarm/keep-your-data-alive)
 
+We recommend using [Swarm Desktop](https://www.ethswarm.org/build/desktop) to easily setup Bee.
+
 ## Creating your front page
 
 To create your homepage, simply execute `npx etherjot`.
@@ -25,3 +27,13 @@ Manage your articles and menu pages using two essential commands:
 `npx etherjot add <path-to-markdown-file>`
 
 `npx etherjot remove`
+
+## Examples
+
+### Front page
+
+![Screenshot of front page](docs/home.png)
+
+### Article
+
+![Screenshot of front page](docs/article.png)
