@@ -1,0 +1,31 @@
+{
+    "name": "etherjot",
+    "version": "1.0.2",
+    "description": "",
+    "main": "dist/index.js",
+    "bin": {
+        "etherjot": "./dist/index.js"
+    },
+    "scripts": {
+        "start": "ts-node src/index.ts",
+        "prepare": "npm run build",
+        "build": "rimraf dist && tsc"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@ethersphere/bee-js": "^6.0.0-pre.5",
+        "cafe-node-utility": "^1.1.0",
+        "cafe-utility": "9",
+        "ethereumjs-wallet": "^1.0.2",
+        "inquirer": "8",
+        "marked": "^4.2.12"
+    },
+    "devDependencies": {
+        "@types/inquirer": "8",
+        "@types/marked": "^4.0.8",
+        "rimraf": "^4.4.1",
+        "typescript": "^5.0.2"
+    }
+}
