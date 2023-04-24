@@ -1,7 +1,7 @@
 import { Bee, BeeDebug } from '@ethersphere/bee-js'
 import { Files } from 'cafe-node-utility'
 import { Arrays, Strings, Types } from 'cafe-utility'
-import { default as ether, default as Wallet } from 'ethereumjs-wallet'
+import { default as Wallet, default as ether } from 'ethereumjs-wallet'
 import inquirer from 'inquirer'
 import { homedir } from 'os'
 import { join } from 'path'
@@ -20,7 +20,11 @@ interface Article {
     title: string
     markdown: string
     html: string
+    categories: string[]
+    tags: string[]
     createdAt: number
+    wordCount: number
+    banner?: string
 }
 
 interface GlobalStateOnDisk {
@@ -31,6 +35,7 @@ interface GlobalStateOnDisk {
     pages: Page[]
     articles: Article[]
     images: Record<string, string>
+    collections: Record<string, string>
 }
 
 export interface GlobalState {
@@ -44,11 +49,12 @@ export interface GlobalState {
     pages: Page[]
     articles: Article[]
     images: Record<string, string>
+    collections: Record<string, string>
 }
 
-export async function getGlobalState(): Promise<GlobalState> {
+export async function getGlobalState(websiteName?: string): Promise<GlobalState> {
     if (!(await Files.existsAsync(getPath()))) {
-        await createDefaultGlobalState()
+        await createDefaultGlobalState(websiteName)
     }
     const json = await Files.readJsonAsync(getPath())
     const globalStateOnDisk: GlobalStateOnDisk = {
@@ -63,13 +69,19 @@ export async function getGlobalState(): Promise<GlobalState> {
             feed: Types.asString(x.feed),
             topic: Types.asString(x.topic)
         })),
-        articles: Types.asArray(json.articles).map((x: any) => ({
-            title: Types.asString(x.title),
-            markdown: Types.asString(x.markdown),
-            html: Types.asString(x.html),
-            createdAt: Types.asNumber(x.createdAt)
-        })),
-        images: Types.asObject(json.images) as Record<string, string>
+        articles: Types.asArray(json.articles).map((x: any) => {
+            return {
+                title: Types.asString(x.title),
+                markdown: Types.asString(x.markdown),
+                html: Types.asString(x.html),
+                categories: Types.asArray(x.categories || []).map(Types.asString),
+                tags: Types.asArray(x.tags || []).map(Types.asString),
+                wordCount: Types.asNumber(x.wordCount || 0),
+                createdAt: Types.asNumber(x.createdAt)
+            }
+        }),
+        images: Types.asObject(json.images) as Record<string, string>,
+        collections: Types.asObject(json.collections || {}) as Record<string, string>
     }
     return createGlobalState(globalStateOnDisk)
 }
@@ -82,12 +94,13 @@ export async function saveGlobalState(globalState: GlobalState): Promise<void> {
         style: globalState.style,
         pages: globalState.pages,
         articles: globalState.articles,
-        images: globalState.images
+        images: globalState.images,
+        collections: globalState.collections
     }
     await Files.writeUtf8FileAsync(getPath(), JSON.stringify(globalStateOnDisk))
 }
 
-async function createDefaultGlobalState(): Promise<void> {
+async function createDefaultGlobalState(websiteName?: string): Promise<void> {
     const privateKey = Strings.randomHex(64)
     const wallet = ether.fromPrivateKey(Buffer.from(privateKey, 'hex'))
     const pages: Page[] = []
@@ -105,16 +118,19 @@ async function createDefaultGlobalState(): Promise<void> {
         images,
         feed: feedReference.reference,
         style: styleReference.reference,
-        websiteName: await inquirer
-            .prompt({
-                type: 'input',
-                name: 'websiteName',
-                message: 'What is the name of your website?',
-                default: 'My Website'
-            })
-            .then(x => x.websiteName)
+        websiteName:
+            websiteName ||
+            (await inquirer
+                .prompt({
+                    type: 'input',
+                    name: 'websiteName',
+                    message: 'What is the name of your website?',
+                    default: 'My Website'
+                })
+                .then(x => x.websiteName)),
+        collections: {}
     }
-    await createFrontPage('0'.repeat(64), await createGlobalState(globalStateOnDisk))
+    await createFrontPage(await createGlobalState(globalStateOnDisk))
     await Files.writeUtf8FileAsync(getPath(), JSON.stringify(globalStateOnDisk))
 }
 
@@ -142,7 +158,8 @@ async function createGlobalState(globalStateOnDisk: GlobalStateOnDisk): Promise<
         stamp,
         pages: globalStateOnDisk.pages,
         articles: globalStateOnDisk.articles,
-        images: globalStateOnDisk.images
+        images: globalStateOnDisk.images,
+        collections: globalStateOnDisk.collections
     }
     return globalState
 }

@@ -17,13 +17,16 @@
     "dependencies": {
         "@ethersphere/bee-js": "^6.0.0-pre.5",
         "cafe-node-utility": "^1.1.0",
-        "cafe-utility": "9",
+        "cafe-utility": "^9.0.1",
         "ethereumjs-wallet": "^1.0.2",
         "inquirer": "8",
-        "marked": "^4.2.12"
+        "js-yaml": "^4.1.0",
+        "marked": "^4.2.12",
+        "toml": "^3.0.0"
     },
     "devDependencies": {
         "@types/inquirer": "8",
+        "@types/js-yaml": "^4.0.5",
         "@types/marked": "^4.0.8",
         "rimraf": "^4.4.1",
         "typescript": "^5.0.2"

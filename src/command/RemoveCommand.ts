@@ -9,7 +9,7 @@ export async function executeRemoveCommand(globalState: GlobalState) {
     const isPage = globalState.pages.some(x => x.title === title)
     globalState.articles = globalState.articles.filter(x => x.title !== title)
     globalState.pages = globalState.pages.filter(x => x.title !== title)
-    await createFrontPage('0'.repeat(64), globalState)
+    await createFrontPage(globalState)
     if (isPage) {
         for (const page of globalState.pages) {
             console.log('Regenerating page: ' + page.title)

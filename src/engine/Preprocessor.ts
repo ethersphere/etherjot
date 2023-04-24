@@ -1,6 +1,6 @@
 import { Strings } from 'cafe-utility'
-import { readFile } from 'fs/promises'
 import { GlobalState } from './GlobalState'
+import { uploadImage } from './ImageUploader'
 
 export async function preprocess(html: string, globalState: GlobalState): Promise<string> {
     const images = Strings.extractAllBlocks(html, {
@@ -8,16 +8,16 @@ export async function preprocess(html: string, globalState: GlobalState): Promis
         closing: '"'
     })
     for (const image of images) {
+        if (image.startsWith('<img src="http://') || image.startsWith('<img src="https://')) {
+            continue
+        }
         const src = image.substring('<img src="'.length, image.length - '"'.length)
         const name = Strings.afterLast(src, '/')
         let reference = ''
         if (globalState.images[src]) {
             reference = globalState.images[src]
         } else {
-            const results = await globalState.bee.uploadFile(globalState.stamp, await readFile(src), name, {
-                contentType: 'image/png'
-            })
-            reference = results.reference
+            const reference = await uploadImage(globalState, name, src)
             globalState.images[src] = reference
         }
         html = html.replace(image, `<img src="/bzz/${reference}"`)

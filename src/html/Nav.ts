@@ -6,7 +6,5 @@ export function createNav(globalState: GlobalState) {
     }
     const pages = [...globalState.pages]
     pages.unshift({ title: 'Home', feed: globalState.feed, topic: '', markdown: '', html: '' })
-    return `<nav>${pages
-        .map(x => `<a href="http://localhost:1633/bzz/${x.feed}" class="nav-item">${x.title}</a>`)
-        .join('')}</nav>`
+    return `<nav>${pages.map(x => `<a href="/bzz/${x.feed}" class="nav-item">${x.title}</a>`).join('')}</nav>`
 }
