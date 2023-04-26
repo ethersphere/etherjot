@@ -1,3 +1,3 @@
-export function createTag(label: string, target: string): string {
-    return `<a class="tag" href="/bzz/${target}">#${label}</a>`
+export function createTag(label: string, slug: string, depth: number): string {
+    return `<a class="tag" href="${'../'.repeat(depth)}${slug}">#${label}</a>`
 }

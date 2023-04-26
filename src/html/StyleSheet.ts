@@ -1,5 +1,3 @@
-import { GlobalState } from '../engine/GlobalState'
-
-export function createStyleSheet(globalState: GlobalState) {
-    return `<link rel="stylesheet" href="/bzz/${globalState.style}" />`
+export function createStyleSheet(depth: number) {
+    return `<link rel="stylesheet" href="${'../'.repeat(depth)}style.css" />`
 }

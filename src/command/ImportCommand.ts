@@ -6,7 +6,6 @@ import toml from 'toml'
 import { parseMarkdown } from '../engine/FrontMatter'
 import { GlobalState, getGlobalState } from '../engine/GlobalState'
 import { uploadImage } from '../engine/ImageUploader'
-import { peekFeedAddress } from '../engine/SwarmUtility'
 import { createArticlePage } from '../page/ArticlePage'
 import { createFrontPage } from '../page/FrontPage'
 import { createMenuPage } from '../page/MenuPage'
@@ -37,18 +36,15 @@ export async function executeImportCommand(): Promise<GlobalState> {
         const body = stripContent(content.body)
         const title = Types.asString(Types.asObject(content.attributes).title)
         console.log(`Page title: ${title}`)
-        const topic = Strings.randomHex(64)
-        const feed = await peekFeedAddress(topic, globalState)
         const page = {
             title,
-            topic,
-            feed,
             markdown: '',
-            html: ''
+            html: '',
+            path: Strings.slugify(Strings.getBasename(path)).slice(0, 42)
         }
         globalState.pages = globalState.pages.filter(x => x.title !== title)
         globalState.pages.push(page)
-        const uploadResults = await createMenuPage(title, body, topic, globalState)
+        const uploadResults = await createMenuPage(title, body, globalState)
         page.markdown = uploadResults.markdownReference
         page.html = uploadResults.swarmReference
     }
@@ -56,32 +52,36 @@ export async function executeImportCommand(): Promise<GlobalState> {
         console.log(`Processing article: ${path}`)
         const fileContent = await Files.readUtf8FileAsync(path)
         const content = parseMarkdown(fileContent)
-        const body = stripContent(content.body)
+        content.body = stripContent(content.body)
         const categories = getTagsOrCategories(content.attributes.categories)
         const tags = getTagsOrCategories(content.attributes.tags)
         const title = Types.asString(content.attributes.title || Strings.after(path, '_posts/'))
         console.log(`Article title: ${title}`)
-        let banner: string | undefined = undefined
+        let banner = null
         if (content.attributes.banner) {
             const bannerPath = Types.asString(content.attributes.banner)
             if (!globalState.images[bannerPath]) {
                 const imageReference = await uploadImage(globalState, 'banner', bannerPath)
                 globalState.images[bannerPath] = imageReference
                 banner = imageReference
+            } else {
+                banner = globalState.images[bannerPath]
             }
         }
-        const uploadResults = await createArticlePage(title, body, globalState, banner)
+        const uploadResults = await createArticlePage(title, content, globalState, [...tags, ...categories], banner)
         globalState.articles = globalState.articles.filter(x => x.title !== title)
-        globalState.articles.push({
+        const article = {
             title,
             markdown: uploadResults.markdownReference,
             html: uploadResults.swarmReference,
             tags,
             categories,
-            wordCount: body.split(' ').length,
+            wordCount: content.body.split(' ').length,
             createdAt: getCreatedAt(path, Types.asObject(content.attributes).date),
-            banner
-        })
+            banner,
+            path: uploadResults.path
+        }
+        globalState.articles.push(article)
     }
     console.log('Rebuilding front page')
     await createFrontPage(globalState)

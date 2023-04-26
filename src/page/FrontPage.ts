@@ -1,34 +1,31 @@
 import { GlobalState } from '../engine/GlobalState'
-import { putToFeed } from '../engine/SwarmUtility'
 import { createFooter } from '../html/Footer'
 import { createHeader } from '../html/Header'
 import { createHtml5 } from '../html/Html5'
 import { createNav } from '../html/Nav'
 import { createPostContainer } from '../html/PostContainer'
 import { createStyleSheet } from '../html/StyleSheet'
-import { createTag } from '../html/Tag'
+import { createTagCloud } from '../html/TagCloud'
 import { createCollectionPage } from './CollectionPage'
 
 export async function createFrontPage(globalState: GlobalState): Promise<{ swarmReference: string }> {
     await buildCollectionPages(globalState)
-    const head = `<title>${globalState.websiteName}</title>${createStyleSheet(globalState)}`
+    const head = `<title>${globalState.websiteName}</title>${createStyleSheet(0)}`
     const body = `
     ${createHeader(globalState)}
-    ${createNav(globalState)}
+    ${createNav(globalState, 0)}
     <main>
-        <h1>Posts</h1>
+        ${globalState.articles.length ? '<h1>Posts</h1>' : ''}
         ${createPostContainer(globalState)}
         ${!globalState.articles.length ? '<p>This blog has no content yet.</p>' : ''}
-        <h1>Tags</h1>
-        ${Object.entries(globalState.collections)
-            .map(x => createTag(x[0], x[1]))
-            .join('')}
+        ${Object.keys(globalState.collections).length ? '<h1>Tags</h1>' : ''}
+        ${createTagCloud(Object.keys(globalState.collections), 0)}
     </main>
     ${createFooter()}`
     const html = createHtml5(head, body)
-    const results = await putToFeed(html, 'text/html', 'index.html', '00'.repeat(32), globalState)
+    const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     return {
-        swarmReference: results.swarmReference
+        swarmReference: htmlResults.reference
     }
 }
 

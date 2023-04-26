@@ -1,27 +1,23 @@
-import { GlobalState } from '../engine/GlobalState'
-import { createTag } from './Tag'
+import { createTagCloud } from './TagCloud'
 
 export function createPost(
-    globalState: GlobalState,
     title: string,
-    html: string,
     tags: string[],
     wordCount: number,
     createdAt: number,
-    banner?: string
+    path: string,
+    banner: string | null
 ): string {
     return `
     <div class="article-container">
-        ${banner ? `<a href="/bzz/${html}"><img class="article-banner" src="/bzz/${banner}"></a>` : ''}
+        ${banner ? `<a href="${path}"><img class="article-banner" src="/bzz/${banner}"></a>` : ''}
         <div class="article-body">
-            <a href="/bzz/${html}">
+            <a href="${path}">
                 <p class="article-title">${title}</p>
                 <p class="article-word-count">${wordCount} words, ${Math.ceil(wordCount / 200)} minute(s) to read</p>
                 <p class="article-timestamp">${new Date(createdAt).toDateString()}</p>
             </a>
-            <div class="article-tags">
-                ${tags.map(x => createTag(x, globalState.collections[x])).join('')}
-            </div>
+            ${createTagCloud(tags, 0)}
         </div>
     </div>`
 }

@@ -21,6 +21,7 @@
         "ethereumjs-wallet": "^1.0.2",
         "inquirer": "8",
         "js-yaml": "^4.1.0",
+        "mantaray-js": "^1.0.3",
         "marked": "^4.2.12",
         "toml": "^3.0.0"
     },

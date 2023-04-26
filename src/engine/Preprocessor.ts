@@ -17,7 +17,7 @@ export async function preprocess(html: string, globalState: GlobalState): Promis
         if (globalState.images[src]) {
             reference = globalState.images[src]
         } else {
-            const reference = await uploadImage(globalState, name, src)
+            reference = await uploadImage(globalState, name, src)
             globalState.images[src] = reference
         }
         html = html.replace(image, `<img src="/bzz/${reference}"`)

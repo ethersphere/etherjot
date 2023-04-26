@@ -1,115 +1,95 @@
 import { Files } from 'cafe-node-utility'
-import { Strings } from 'cafe-utility'
+import { Strings, Types } from 'cafe-utility'
+import { parseMarkdown } from '../engine/FrontMatter'
 import { GlobalState } from '../engine/GlobalState'
-import { peekFeedAddress, promptForOption, promptForText } from '../engine/SwarmUtility'
+import { uploadImage } from '../engine/ImageUploader'
+import { getTagsOrCategories } from '../engine/Metadata'
+import { promptForOption, promptForText } from '../engine/SwarmUtility'
 import { createArticlePage } from '../page/ArticlePage'
-import { createFrontPage } from '../page/FrontPage'
 import { createMenuPage } from '../page/MenuPage'
 
 const intentions = {
     addArticle: 'Add a new Article',
-    addPage: 'Add a new Page',
-    update: 'Update an existing item'
+    addPage: 'Add a new Page'
 }
 
 export async function executeAddCommand(globalState: GlobalState) {
     const type = await promptForOption('What would you like to do?', Object.values(intentions))
-    const title = await promptForText('What is the title of the content?')
-    if (globalState.articles.some(x => x.title === title) || globalState.pages.some(x => x.title === title)) {
-        throw Error('You already have a content with this title. Please choose a different title.')
-    }
+
     if (type === intentions.addArticle) {
-        await addNewArticle(title, globalState)
+        await addNewArticle(globalState)
     }
     if (type === intentions.addPage) {
+        const title = await promptForText('What is the title of your page?')
+        if (globalState.pages.some(x => x.title === title)) {
+            throw Error('You already have a page with this title. Please choose a different title.')
+        }
         await addNewPage(title, globalState)
-    }
-    if (type === intentions.update) {
-        await updateExistingItem(globalState)
+        for (const page of globalState.pages) {
+            const rawData = await globalState.bee.downloadFile(page.markdown)
+            const results = await createMenuPage(page.title, rawData.data.text(), globalState)
+            page.html = results.swarmReference
+        }
+        for (const article of globalState.articles) {
+            const rawData = await globalState.bee.downloadFile(article.markdown)
+            const results = await createArticlePage(
+                article.title,
+                parseMarkdown(rawData.data.text()),
+                globalState,
+                [...article.tags, ...article.categories],
+                article.banner
+            )
+            article.html = results.swarmReference
+        }
     }
 
-    async function addNewArticle(title: string, globalState: GlobalState) {
+    async function addNewArticle(globalState: GlobalState) {
         const fileContent = await Files.readUtf8FileAsync(process.argv[3])
-        const uploadResults = await createArticlePage(title, fileContent, globalState)
+        const content = parseMarkdown(fileContent)
+        const title = content.attributes.title || (await promptForText('What is the title of your article?'))
+        const categories = getTagsOrCategories(content.attributes.categories)
+        const tags = getTagsOrCategories(content.attributes.tags)
+        if (globalState.articles.some(x => x.title === title)) {
+            throw Error('You already have an article with this title. Please choose a different title.')
+        }
+        let banner = null
+        if (content.attributes.banner) {
+            const bannerPath = Types.asString(content.attributes.banner)
+            if (!globalState.images[bannerPath]) {
+                const imageReference = await uploadImage(globalState, Strings.getBasename(bannerPath), bannerPath)
+                globalState.images[bannerPath] = imageReference
+                banner = imageReference
+            } else {
+                banner = globalState.images[bannerPath]
+            }
+        }
+        const uploadResults = await createArticlePage(title, content, globalState, [...tags, ...categories], banner)
         globalState.articles.push({
             title,
             markdown: uploadResults.markdownReference,
             html: uploadResults.swarmReference,
-            categories: [],
-            tags: [],
-            wordCount: fileContent.split(' ').length,
-            createdAt: Date.now()
+            categories,
+            tags,
+            wordCount: content.body.split(' ').length,
+            createdAt: Date.now(),
+            path: `post/${Strings.slugify(title).slice(0, 80)}`,
+            banner
         })
-        await createFrontPage(globalState)
         console.log(`[Jot. 🐝] Successfully added article: ${title}`)
         console.log(`[Jot. 🐝] Your front page: http://localhost:1633/bzz/${globalState.feed}`)
     }
 
     async function addNewPage(title: string, globalState: GlobalState) {
-        const topic = Strings.randomHex(64)
-        const feed = await peekFeedAddress(topic, globalState)
+        const fileContent = await Files.readUtf8FileAsync(process.argv[3])
+        const uploadResults = await createMenuPage(title, fileContent, globalState)
         const page = {
             title,
-            topic,
-            feed,
-            markdown: '',
-            html: ''
+            markdown: uploadResults.markdownReference,
+            html: uploadResults.swarmReference,
+            path: Strings.slugify(title).slice(0, 42)
         }
         globalState.pages.push(page)
-        const fileContent = await Files.readUtf8FileAsync(process.argv[3])
-        const uploadResults = await createMenuPage(title, fileContent, topic, globalState)
-        page.markdown = uploadResults.markdownReference
-        page.html = uploadResults.swarmReference
-        for (const page of globalState.pages) {
-            if (page.title === title) {
-                continue
-            }
-            console.log('Regenerating page: ' + page.title)
-            const rawData = await globalState.bee.downloadFile(page.markdown)
-            await createMenuPage(page.title, rawData.data.text(), page.topic, globalState)
-        }
-        console.log('Regenerating front page')
-        await createFrontPage(globalState)
         console.log(`[Jot. 🐝] Successfully added page: ${title}`)
         console.log(`[Jot. 🐝] Your front page: http://localhost:1633/bzz/${globalState.feed}`)
-    }
-
-    async function updateExistingItem(globalState: GlobalState) {
-        const fileContent = await Files.readUtf8FileAsync(process.argv[3])
-        const options = globalState.articles.map(x => x.title).concat(globalState.pages.map(x => x.title))
-        const title = await promptForOption('What content do you want to update?', options)
-        const isPage = globalState.pages.some(x => x.title === title)
-        if (isPage) {
-            const page = globalState.pages.find(x => x.title === title)!
-            const uploadResults = await createMenuPage(title, fileContent, page.topic, globalState)
-            page.markdown = uploadResults.markdownReference
-            page.html = uploadResults.swarmReference
-            for (const page of globalState.pages) {
-                if (page.title === title) {
-                    continue
-                }
-                console.log('Regenerating page: ' + page.title)
-                const rawData = await globalState.bee.downloadFile(page.markdown)
-                await createMenuPage(page.title, rawData.data.text(), page.topic, globalState)
-            }
-            console.log('Regenerating front page')
-            await createFrontPage(globalState)
-            console.log(`[Jot. 🐝] Successfully updated page: ${title}`)
-            console.log(`[Jot. 🐝] Your front page: http://localhost:1633/bzz/${globalState.feed}`)
-        } else {
-            const uploadResults = await createArticlePage(title, fileContent, globalState)
-            globalState.articles.push({
-                title,
-                markdown: uploadResults.markdownReference,
-                html: uploadResults.swarmReference,
-                categories: [],
-                tags: [],
-                wordCount: fileContent.split(' ').length,
-                createdAt: Date.now()
-            })
-            await createFrontPage(globalState)
-            console.log(`[Jot. 🐝] Successfully updated article: ${title}`)
-            console.log(`[Jot. 🐝] Your front page: http://localhost:1633/bzz/${globalState.feed}`)
-        }
     }
 }

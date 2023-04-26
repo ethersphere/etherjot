@@ -1,7 +1,6 @@
 import { marked } from 'marked'
 import { GlobalState } from '../engine/GlobalState'
 import { preprocess } from '../engine/Preprocessor'
-import { putToFeed } from '../engine/SwarmUtility'
 import { createFooter } from '../html/Footer'
 import { createHeader } from '../html/Header'
 import { createHtml5 } from '../html/Html5'
@@ -11,14 +10,13 @@ import { createStyleSheet } from '../html/StyleSheet'
 export async function createMenuPage(
     title: string,
     markdown: string,
-    topic: string,
     globalState: GlobalState
 ): Promise<{
     markdownReference: string
     swarmReference: string
 }> {
-    const head = `<title>${title} | ${globalState.websiteName}</title>${createStyleSheet(globalState)}`
-    const body = `${createHeader(globalState)}${createNav(globalState)}<main>${await preprocess(
+    const head = `<title>${title} | ${globalState.websiteName}</title>${createStyleSheet(0)}`
+    const body = `${createHeader(globalState)}${createNav(globalState, 0)}<main>${await preprocess(
         marked.parse(markdown),
         globalState
     )}</main>${createFooter()}`
@@ -26,9 +24,9 @@ export async function createMenuPage(
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown, 'index.md', {
         contentType: 'text/markdown'
     })
-    const results = await putToFeed(html, 'text/html', 'index.html', topic, globalState)
+    const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     return {
         markdownReference: markdownResults.reference,
-        swarmReference: results.swarmReference
+        swarmReference: htmlResults.reference
     }
 }

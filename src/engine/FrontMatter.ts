@@ -2,14 +2,18 @@ import { Strings } from 'cafe-utility'
 import { load } from 'js-yaml'
 import toml from 'toml'
 
-export function parseMarkdown(markdown: string): {
+export interface ParsedMarkdown {
+    raw: string
     attributes: any
     body: string
-} {
+}
+
+export function parseMarkdown(markdown: string): ParsedMarkdown {
     if (markdown.startsWith('---')) {
         const metadata = Strings.extractBlock(markdown, { opening: '---', closing: '---', exclusive: true })
         if (!metadata) {
             return {
+                raw: markdown,
                 attributes: {},
                 body: markdown
             }
@@ -17,6 +21,7 @@ export function parseMarkdown(markdown: string): {
         const attributes = load(metadata)
         const body = markdown.substring(metadata.length + 6).trim()
         return {
+            raw: markdown,
             attributes,
             body
         }
@@ -25,6 +30,7 @@ export function parseMarkdown(markdown: string): {
         const metadata = Strings.extractBlock(markdown, { opening: '+++', closing: '+++', exclusive: true })
         if (!metadata) {
             return {
+                raw: markdown,
                 attributes: {},
                 body: markdown
             }
@@ -32,11 +38,13 @@ export function parseMarkdown(markdown: string): {
         const attributes = toml.parse(metadata)
         const body = markdown.substring(metadata.length + 6).trim()
         return {
+            raw: markdown,
             attributes,
             body
         }
     }
     return {
+        raw: markdown,
         attributes: {},
         body: markdown
     }
