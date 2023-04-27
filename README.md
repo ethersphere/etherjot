@@ -28,6 +28,10 @@ Manage your articles and menu pages using two essential commands:
 
 `npx etherjot remove`
 
+Import existing Jekyll or Hugo blog:
+
+`npx etherjot import`
+
 ## Examples
 
 ### Front page
