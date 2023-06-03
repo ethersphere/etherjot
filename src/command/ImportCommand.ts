@@ -1,10 +1,10 @@
 import { Files } from 'cafe-node-utility'
-import { Strings, Types } from 'cafe-utility'
+import { Objects, Strings, Types } from 'cafe-utility'
 import { readdir } from 'fs/promises'
 import { load } from 'js-yaml'
 import toml from 'toml'
 import { parseMarkdown } from '../engine/FrontMatter'
-import { GlobalState, getGlobalState } from '../engine/GlobalState'
+import { Article, GlobalState, getGlobalState } from '../engine/GlobalState'
 import { uploadImage } from '../engine/ImageUploader'
 import { createArticlePage } from '../page/ArticlePage'
 import { createFrontPage } from '../page/FrontPage'
@@ -12,11 +12,24 @@ import { createMenuPage } from '../page/MenuPage'
 
 export async function executeImportCommand(): Promise<GlobalState> {
     console.log('Attempting to convert Jekyll/Hugo website to Swarm website')
+    console.log('Loading optional configuration from .jot')
+    const jotConfiguration = {}
+    if (await Files.existsAsync('.jot')) {
+        const jotFile = await Files.readJsonAsync('.jot')
+        Objects.deepMergeInPlace(jotConfiguration, jotFile)
+    }
     console.log('Loading configuration from _config.yml or config.toml')
     const websiteName = await loadConfiguration()
     console.log(`Website name: ${websiteName}`)
     console.log('Creating front page')
     const globalState = await getGlobalState(websiteName)
+    Objects.setSomeDeep(globalState.configuration as any, 'header.link', jotConfiguration, 'link')
+    Objects.setSomeDeep(globalState.configuration as any, 'footer.description', jotConfiguration, 'footer')
+    Objects.setSomeDeep(globalState.configuration as any, 'footer.links.discord', jotConfiguration, 'discord')
+    Objects.setSomeDeep(globalState.configuration as any, 'footer.links.twitter', jotConfiguration, 'twitter')
+    Objects.setSomeDeep(globalState.configuration as any, 'footer.links.github', jotConfiguration, 'github')
+    Objects.setSomeDeep(globalState.configuration as any, 'footer.links.youtube', jotConfiguration, 'youtube')
+    Objects.setSomeDeep(globalState.configuration as any, 'footer.links.reddit', jotConfiguration, 'reddit')
     console.log(`Your front page: http://localhost:1633/bzz/${globalState.feed}`)
     console.log('Detecting pages')
     const pagePaths = (await readdir('.'))
@@ -29,6 +42,30 @@ export async function executeImportCommand(): Promise<GlobalState> {
     console.log('Detecting articles')
     const articlePaths = await loadArticlePaths()
     console.log(`Found ${articlePaths.length} articles`)
+    console.log('Detecting Hugo settings')
+    let headerDescription = ''
+    let h1Page = ''
+    const h2Pages = []
+    if (await Files.existsAsync('content/_index.md')) {
+        console.log('Found Hugo settings')
+        const fileContent = await Files.readUtf8FileAsync('content/_index.md')
+        const content = parseMarkdown(fileContent)
+        if (content.attributes.featured) {
+            h1Page = Strings.betweenNarrow(content.attributes.featured as string, '/', '.')
+        }
+        if (content.attributes.featured_secondary_first) {
+            h2Pages.push(Strings.betweenNarrow(content.attributes.featured_secondary_first as string, '/', '.'))
+        }
+        if (content.attributes.featured_secondary_second) {
+            h2Pages.push(Strings.betweenNarrow(content.attributes.featured_secondary_second as string, '/', '.'))
+        }
+        headerDescription = (content.attributes.description as string) || ''
+        Objects.setDeep(
+            globalState.configuration as any,
+            'header.description',
+            Strings.resolveMarkdownLinks(headerDescription, (label, link) => `<a href="${link}">${label}</a>`)
+        )
+    }
     for (const path of pagePaths) {
         console.log(`Processing page: ${path}`)
         const fileContent = await Files.readUtf8FileAsync(path)
@@ -57,21 +94,26 @@ export async function executeImportCommand(): Promise<GlobalState> {
         const tags = getTagsOrCategories(content.attributes.tags)
         const title = Types.asString(content.attributes.title || Strings.after(path, '_posts/'))
         console.log(`Article title: ${title}`)
-        let banner = null
+        let banner = 'default.png'
         if (content.attributes.banner) {
-            const bannerPath = Types.asString(content.attributes.banner)
+            let bannerPath = Types.asString(content.attributes.banner)
+            if (bannerPath.startsWith('/')) {
+                bannerPath = bannerPath.slice(1)
+            }
+            banner = bannerPath
             if (!globalState.images[bannerPath]) {
-                const imageReference = await uploadImage(globalState, 'banner', bannerPath)
-                globalState.images[bannerPath] = imageReference
-                banner = imageReference
-            } else {
-                banner = globalState.images[bannerPath]
+                const uploadedImage = await uploadImage(globalState, bannerPath)
+                globalState.images[bannerPath] = uploadedImage.reference
+                banner = bannerPath
             }
         }
         const uploadResults = await createArticlePage(title, content, globalState, [...tags, ...categories], banner)
         globalState.articles = globalState.articles.filter(x => x.title !== title)
-        const article = {
+        const slug = Strings.slugify(title)
+        const pathSlug = Strings.before(Strings.afterLast(path, '/'), '.')
+        const article: Article = {
             title,
+            preview: (Types.asObject(content.attributes).description as string) || content.body.slice(0, 150),
             markdown: uploadResults.markdownReference,
             html: uploadResults.swarmReference,
             tags,
@@ -79,7 +121,8 @@ export async function executeImportCommand(): Promise<GlobalState> {
             wordCount: content.body.split(' ').length,
             createdAt: getCreatedAt(path, Types.asObject(content.attributes).date),
             banner,
-            path: uploadResults.path
+            path: uploadResults.path,
+            kind: slug === h1Page || pathSlug === h1Page ? 'h1' : h2Pages.includes(slug) ? 'h2' : 'regular'
         }
         globalState.articles.push(article)
     }

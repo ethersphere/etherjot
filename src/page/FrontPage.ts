@@ -1,29 +1,24 @@
 import { GlobalState } from '../engine/GlobalState'
+import { exportToWeb2 } from '../engine/Web2Export'
 import { createFooter } from '../html/Footer'
 import { createHeader } from '../html/Header'
 import { createHtml5 } from '../html/Html5'
-import { createNav } from '../html/Nav'
 import { createPostContainer } from '../html/PostContainer'
 import { createStyleSheet } from '../html/StyleSheet'
-import { createTagCloud } from '../html/TagCloud'
 import { createCollectionPage } from './CollectionPage'
 
 export async function createFrontPage(globalState: GlobalState): Promise<{ swarmReference: string }> {
     await buildCollectionPages(globalState)
-    const head = `<title>${globalState.websiteName}</title>${createStyleSheet(0)}`
+    const head = `<title>${globalState.configuration.title}</title>${createStyleSheet(0)}`
     const body = `
-    ${createHeader(globalState)}
-    ${createNav(globalState, 0)}
+    ${createHeader(globalState, 0, 'Latest')}
     <main>
-        ${globalState.articles.length ? '<h1>Posts</h1>' : ''}
         ${createPostContainer(globalState)}
-        ${!globalState.articles.length ? '<p>This blog has no content yet.</p>' : ''}
-        ${Object.keys(globalState.collections).length ? '<h1>Tags</h1>' : ''}
-        ${createTagCloud(Object.keys(globalState.collections), 0)}
     </main>
-    ${createFooter()}`
+    ${createFooter(globalState)}`
     const html = createHtml5(head, body)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
+    await exportToWeb2('index.html', html)
     return {
         swarmReference: htmlResults.reference
     }

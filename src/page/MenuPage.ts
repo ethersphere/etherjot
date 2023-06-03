@@ -4,7 +4,6 @@ import { preprocess } from '../engine/Preprocessor'
 import { createFooter } from '../html/Footer'
 import { createHeader } from '../html/Header'
 import { createHtml5 } from '../html/Html5'
-import { createNav } from '../html/Nav'
 import { createStyleSheet } from '../html/StyleSheet'
 
 export async function createMenuPage(
@@ -15,11 +14,11 @@ export async function createMenuPage(
     markdownReference: string
     swarmReference: string
 }> {
-    const head = `<title>${title} | ${globalState.websiteName}</title>${createStyleSheet(0)}`
-    const body = `${createHeader(globalState)}${createNav(globalState, 0)}<main>${await preprocess(
+    const head = `<title>${title} | ${globalState.configuration.title}</title>${createStyleSheet(0)}`
+    const body = `${createHeader(globalState, 0, 'Latest')}<main>${await preprocess(
         marked.parse(markdown),
         globalState
-    )}</main>${createFooter()}`
+    )}</main>${createFooter(globalState)}`
     const html = createHtml5(head, body)
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown, 'index.md', {
         contentType: 'text/markdown'

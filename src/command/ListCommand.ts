@@ -1,6 +1,10 @@
+import { Objects } from 'cafe-utility'
 import { GlobalState } from '../engine/GlobalState'
 
 export async function executeListCommand(globalState: GlobalState) {
+    console.log(
+        JSON.stringify(Objects.removeEmptyValues(Objects.flatten(globalState.configuration as any) as any), null, 4)
+    )
     globalState.doNotSave = true
     globalState.articles.forEach(x => {
         console.log(`Article: ${x.title}`)

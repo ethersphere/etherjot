@@ -1,10 +1,10 @@
-import { Strings } from 'cafe-utility'
+import { Strings, Types } from 'cafe-utility'
 import { load } from 'js-yaml'
 import toml from 'toml'
 
 export interface ParsedMarkdown {
     raw: string
-    attributes: any
+    attributes: Record<string, unknown>
     body: string
 }
 
@@ -22,7 +22,7 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
         const body = markdown.substring(metadata.length + 6).trim()
         return {
             raw: markdown,
-            attributes,
+            attributes: Types.asObject(attributes),
             body
         }
     }

@@ -2,22 +2,32 @@ import { createTagCloud } from './TagCloud'
 
 export function createPost(
     title: string,
+    preview: string,
     tags: string[],
-    wordCount: number,
     createdAt: number,
     path: string,
-    banner: string | null
+    banner: string,
+    kind: 'h1' | 'h2' | 'highlight' | 'regular'
 ): string {
+    const formattedDate = new Date(createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric' })
+
+    const image = kind === 'highlight' ? '' : `<a href="${path}"><img class="article-banner" src="${banner}"></a>`
+    const meta =
+        kind === 'highlight'
+            ? `<p class="article-timestamp">${formattedDate}</p>`
+            : `<p class="article-timestamp">${formattedDate}</p>${createTagCloud(tags, 0)}`
+
     return `
-    <div class="article-container">
-        ${banner ? `<a href="${path}"><img class="article-banner" src="/bzz/${banner}"></a>` : ''}
+    <div class="article-container article-container-${kind}">
+        ${image}
         <div class="article-body">
             <a href="${path}">
                 <p class="article-title">${title}</p>
-                <p class="article-word-count">${wordCount} words, ${Math.ceil(wordCount / 200)} minute(s) to read</p>
-                <p class="article-timestamp">${new Date(createdAt).toDateString()}</p>
+                <p class="article-preview">${preview}</p>
             </a>
-            ${createTagCloud(tags, 0)}
+            <div class="article-meta">
+                ${meta}
+            </div>
         </div>
     </div>`
 }

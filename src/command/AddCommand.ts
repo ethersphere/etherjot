@@ -4,6 +4,7 @@ import { parseMarkdown } from '../engine/FrontMatter'
 import { GlobalState } from '../engine/GlobalState'
 import { uploadImage } from '../engine/ImageUploader'
 import { getTagsOrCategories } from '../engine/Metadata'
+import { rebuildArticlePages, rebuildMenuPages } from '../engine/Rebuild'
 import { promptForOption, promptForText } from '../engine/SwarmUtility'
 import { createArticlePage } from '../page/ArticlePage'
 import { createMenuPage } from '../page/MenuPage'
@@ -25,47 +26,36 @@ export async function executeAddCommand(globalState: GlobalState) {
             throw Error('You already have a page with this title. Please choose a different title.')
         }
         await addNewPage(title, globalState)
-        for (const page of globalState.pages) {
-            const rawData = await globalState.bee.downloadFile(page.markdown)
-            const results = await createMenuPage(page.title, rawData.data.text(), globalState)
-            page.html = results.swarmReference
-        }
-        for (const article of globalState.articles) {
-            const rawData = await globalState.bee.downloadFile(article.markdown)
-            const results = await createArticlePage(
-                article.title,
-                parseMarkdown(rawData.data.text()),
-                globalState,
-                [...article.tags, ...article.categories],
-                article.banner
-            )
-            article.html = results.swarmReference
-        }
+        await rebuildMenuPages(globalState)
+        await rebuildArticlePages(globalState)
     }
 
     async function addNewArticle(globalState: GlobalState) {
         const fileContent = await Files.readUtf8FileAsync(process.argv[3])
         const content = parseMarkdown(fileContent)
-        const title = content.attributes.title || (await promptForText('What is the title of your article?'))
+        const title =
+            Types.asString(content.attributes.title) || (await promptForText('What is the title of your article?'))
         const categories = getTagsOrCategories(content.attributes.categories)
         const tags = getTagsOrCategories(content.attributes.tags)
         if (globalState.articles.some(x => x.title === title)) {
             throw Error('You already have an article with this title. Please choose a different title.')
         }
-        let banner = null
+        let banner = 'default.png'
         if (content.attributes.banner) {
-            const bannerPath = Types.asString(content.attributes.banner)
+            let bannerPath = Types.asString(content.attributes.banner)
+            if (bannerPath.startsWith('/')) {
+                bannerPath = bannerPath.slice(1)
+            }
+            banner = bannerPath
             if (!globalState.images[bannerPath]) {
-                const imageReference = await uploadImage(globalState, Strings.getBasename(bannerPath), bannerPath)
-                globalState.images[bannerPath] = imageReference
-                banner = imageReference
-            } else {
-                banner = globalState.images[bannerPath]
+                const uploadedImage = await uploadImage(globalState, bannerPath)
+                globalState.images[bannerPath] = uploadedImage.reference
             }
         }
         const uploadResults = await createArticlePage(title, content, globalState, [...tags, ...categories], banner)
         globalState.articles.push({
             title,
+            preview: content.body.slice(0, 150),
             markdown: uploadResults.markdownReference,
             html: uploadResults.swarmReference,
             categories,
@@ -73,7 +63,8 @@ export async function executeAddCommand(globalState: GlobalState) {
             wordCount: content.body.split(' ').length,
             createdAt: Date.now(),
             path: `post/${Strings.slugify(title).slice(0, 80)}`,
-            banner
+            banner,
+            kind: 'regular'
         })
         console.log(`[Jot. 🐝] Successfully added article: ${title}`)
         console.log(`[Jot. 🐝] Your front page: http://localhost:1633/bzz/${globalState.feed}`)

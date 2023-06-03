@@ -12,15 +12,12 @@ export async function preprocess(html: string, globalState: GlobalState): Promis
             continue
         }
         const src = image.substring('<img src="'.length, image.length - '"'.length)
-        const name = Strings.afterLast(src, '/')
-        let reference = ''
-        if (globalState.images[src]) {
-            reference = globalState.images[src]
-        } else {
-            reference = await uploadImage(globalState, name, src)
-            globalState.images[src] = reference
+        const relativeSrc = src.startsWith('/') ? src.substring(1) : src
+        if (!globalState.images[relativeSrc]) {
+            const uploadedImage = await uploadImage(globalState, relativeSrc)
+            globalState.images[relativeSrc] = uploadedImage.reference
         }
-        html = html.replace(image, `<img src="/bzz/${reference}"`)
+        html = html.replace(image, `<img src="../${relativeSrc}"`)
     }
     return html
 }

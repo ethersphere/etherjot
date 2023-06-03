@@ -6,6 +6,7 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "target": "es2015",
+        "lib": ["es2021"],
         "moduleResolution": "node",
         "typeRoots": ["node_modules/@types"],
         "rootDirs": ["src"],
