@@ -1,13 +1,16 @@
-import { Objects } from 'cafe-utility'
+import { Objects, Strings } from 'cafe-utility'
 import { GlobalState } from '../engine/GlobalState'
 import { createDiscordSvg } from './DiscordSvg'
 import { createGithubSvg } from './GithubSvg'
+import { createHomeSvg } from './HomeSvg'
+import { createModalCode } from './Modal'
+import { createNewsletterSvg } from './NewsletterSvg'
 import { createRedditSvg } from './RedditSvg'
 import { createSwarmSvg } from './SwarmSvg'
 import { createTwitterSvg } from './TwitterSvg'
 import { createYoutubeSvg } from './YoutubeSvg'
 
-export function createFooter(globalState: GlobalState) {
+export function createFooter(globalState: GlobalState, depth: number) {
     const description = Objects.getDeep(globalState.configuration as any, 'footer.description')
     const descriptionHtml = description ? `<p class="footer-description">${description}</p>` : ''
     const discord = Objects.getDeep(globalState.configuration as any, 'footer.links.discord')
@@ -20,22 +23,39 @@ export function createFooter(globalState: GlobalState) {
     const redditHtml = reddit ? createLinkSvg(createRedditSvg(), 'Reddit', reddit as string) : ''
     const youtube = Objects.getDeep(globalState.configuration as any, 'footer.links.youtube')
     const youtubeHtml = youtube ? createLinkSvg(createYoutubeSvg(), 'YouTube', youtube as string) : ''
+    const link = Objects.getDeep(globalState.configuration as any, 'header.link')
+    const linkHtml = link
+        ? `${Strings.resolveMarkdownLinks(
+              link as string,
+              (_, link) => `<a class="footer-link" href="${link}" target="_blank">${createHomeSvg()} Visit website</a>`
+          )}`
+        : ''
+    const newsletterHtml = `<a class="footer-link" href="${'../'.repeat(
+        depth
+    )}newsletter" target="_blank">${createNewsletterSvg()} Newsletter</a>`
     return `
     <footer>
-        <div class="content-area">
-            <div class="footer-container">
-                <div class="footer-info">
-                    ${createSwarmSvg()}${descriptionHtml}
-                </div>
-                <div class="footer-links">
-                    ${discordHtml}
-                    ${githubHtml}
-                    ${twitterHtml}
-                    ${redditHtml}
-                    ${youtubeHtml}
-                </div>
+        <div class="grid-container content-area">
+            <div class="grid-3 footer-info">
+                ${createSwarmSvg()}${descriptionHtml}
+            </div>
+            <div class="grid-3">
+            </div>
+            <div class="grid-3">
+                ${linkHtml}
+                ${newsletterHtml}
+            </div>
+            <div class="grid-3 footer-links">
+                ${discordHtml}
+                ${githubHtml}
+                ${twitterHtml}
+                ${redditHtml}
+                ${youtubeHtml}
             </div>
         </div>
+        <script>
+            ${createModalCode()}
+        </script>
     </footer>`
 }
 

@@ -19,7 +19,8 @@ export async function rebuildArticlePages(globalState: GlobalState): Promise<voi
             parseMarkdown(rawData.data.text()),
             globalState,
             [...article.tags, ...article.categories],
-            article.banner
+            article.banner,
+            new Date(article.createdAt).toDateString()
         )
         article.html = results.swarmReference
     }

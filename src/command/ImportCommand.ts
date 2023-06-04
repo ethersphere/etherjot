@@ -107,7 +107,15 @@ export async function executeImportCommand(): Promise<GlobalState> {
                 banner = bannerPath
             }
         }
-        const uploadResults = await createArticlePage(title, content, globalState, [...tags, ...categories], banner)
+        const createdAt = getCreatedAt(path, Types.asObject(content.attributes).date)
+        const uploadResults = await createArticlePage(
+            title,
+            content,
+            globalState,
+            [...tags, ...categories],
+            banner,
+            new Date(createdAt).toDateString()
+        )
         globalState.articles = globalState.articles.filter(x => x.title !== title)
         const slug = Strings.slugify(title)
         const pathSlug = Strings.before(Strings.afterLast(path, '/'), '.')
@@ -119,7 +127,7 @@ export async function executeImportCommand(): Promise<GlobalState> {
             tags,
             categories,
             wordCount: content.body.split(' ').length,
-            createdAt: getCreatedAt(path, Types.asObject(content.attributes).date),
+            createdAt,
             banner,
             path: uploadResults.path,
             kind: slug === h1Page || pathSlug === h1Page ? 'h1' : h2Pages.includes(slug) ? 'h2' : 'regular'

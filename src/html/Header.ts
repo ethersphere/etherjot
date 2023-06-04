@@ -2,6 +2,7 @@ import { Objects, Strings } from 'cafe-utility'
 import { GlobalState } from '../engine/GlobalState'
 import { createLogoSvg } from './LogoSvg'
 import { createNav } from './Nav'
+import { createSearchSvg } from './SearchSvg'
 
 export function createHeader(globalState: GlobalState, depth: number, active: string, variant = 'h1') {
     const title = Objects.getFirstDeep(globalState.configuration as any, ['header.title', 'title'])
@@ -22,11 +23,16 @@ export function createHeader(globalState: GlobalState, depth: number, active: st
     <header>
         <div class="content-area">
             <div class="header-top-row">
-                <div class="blog-name-row">
-                    ${createLogoSvg()}
-                    <${variant} class="blog-name">${title}</${variant}>
+                <a href="${'../'.repeat(depth)}">
+                    <div class="blog-name-row">
+                        ${createLogoSvg()}
+                        <${variant} class="blog-name">${title}</${variant}>
+                    </div>
+                </a>
+                <div class="row">
+                    <a href="${'../'.repeat(depth)}search">${createSearchSvg()}</a>
+                    ${linkHtml}
                 </div>
-                ${linkHtml}
             </div>
             ${descriptionHtml}
             ${createNav(globalState, depth, active)}

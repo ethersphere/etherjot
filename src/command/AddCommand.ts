@@ -52,7 +52,14 @@ export async function executeAddCommand(globalState: GlobalState) {
                 globalState.images[bannerPath] = uploadedImage.reference
             }
         }
-        const uploadResults = await createArticlePage(title, content, globalState, [...tags, ...categories], banner)
+        const uploadResults = await createArticlePage(
+            title,
+            content,
+            globalState,
+            [...tags, ...categories],
+            banner,
+            new Date().toDateString()
+        )
         globalState.articles.push({
             title,
             preview: content.body.slice(0, 150),

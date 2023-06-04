@@ -217,8 +217,8 @@ async function createDefaultGlobalState(websiteName?: string): Promise<void> {
     await Files.writeUtf8FileAsync(getPath(), JSON.stringify(globalStateOnDisk))
 }
 
-export function getPath() {
-    return join(homedir(), '.jot.json')
+export function getPath(filename = '.jot.json') {
+    return join(homedir(), filename)
 }
 
 async function createGlobalState(globalStateOnDisk: GlobalStateOnDisk): Promise<GlobalState> {

@@ -13,9 +13,11 @@ export async function createCollectionPage(
     const body = `
     ${createHeader(globalState, 0, collectionName)}
     <main>
-        ${createPostContainer(globalState, collectionName)}
+        <div class="content-area">
+            ${createPostContainer(globalState, collectionName)}
+        </div>
     </main>
-    ${createFooter(globalState)}`
+    ${createFooter(globalState, 0)}`
     const html = createHtml5(head, body)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     return {

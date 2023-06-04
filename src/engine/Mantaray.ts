@@ -1,3 +1,4 @@
+import { Files } from 'cafe-node-utility'
 import { Strings } from 'cafe-utility'
 import { readFile } from 'fs/promises'
 import { MantarayNode, Reference } from 'mantaray-js'
@@ -5,7 +6,9 @@ import { createDefaultImage } from '../html/DefaultImage'
 import { createArticleFontData, createBrandingFontData, createNormalFontData } from '../html/Font'
 import { createStyle } from '../html/Style'
 import { createFrontPage } from '../page/FrontPage'
-import { GlobalState } from './GlobalState'
+import { createNewsletterPage } from '../page/NewsletterPage'
+import { createSearchPage } from '../page/SearchPage'
+import { GlobalState, getPath } from './GlobalState'
 import { exportToWeb2 } from './Web2Export'
 
 export async function recreateMantaray(globalState: GlobalState): Promise<void> {
@@ -14,7 +17,11 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
     }
     const node = globalState.mantaray
     const frontPage = await createFrontPage(globalState)
+    const searchPage = await createSearchPage(globalState)
+    const newsletterPage = await createNewsletterPage(globalState)
     addToMantaray(node, 'index.html', frontPage.swarmReference)
+    addToMantaray(node, 'search', searchPage.swarmReference)
+    addToMantaray(node, 'newsletter', newsletterPage.swarmReference)
     addToMantaray(node, '/', frontPage.swarmReference)
     addToMantaray(node, 'style.css', globalState.styleReference)
     addToMantaray(node, 'font-variant-1.ttf', globalState.font.branding)
@@ -25,6 +32,11 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
     addToMantaray(node, 'post/font-variant-3.ttf', globalState.font.article)
     addToMantaray(node, 'default.png', globalState.defaultCoverImage)
     addToMantaray(node, 'post/default.png', globalState.defaultCoverImage)
+    if (await Files.existsAsync(getPath('.jot.search.json'))) {
+        const search = await readFile(getPath('.jot.search.json'), 'utf-8')
+        const uploadResults = await globalState.bee.uploadData(globalState.stamp, search)
+        addToMantaray(node, 'search.json', uploadResults.reference)
+    }
     await exportToWeb2('style.css', createStyle())
     await exportToWeb2('default.png', createDefaultImage())
     await exportToWeb2('post/default.png', createDefaultImage())

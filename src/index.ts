@@ -9,6 +9,7 @@ import { executePurgeCommand } from './command/PurgeCommand'
 import { executeRebuildCommand } from './command/RebuildCommand'
 import { executeRemoveCommand } from './command/RemoveCommand'
 import { executeRootCommand } from './command/RootCommand'
+import { executeSearchCommand } from './command/SearchCommand'
 import { getGlobalState, saveGlobalState } from './engine/GlobalState'
 
 async function main() {
@@ -21,6 +22,10 @@ async function main() {
         return
     }
     const globalState = await getGlobalState()
+    if (process.argv[2] === 'search') {
+        await executeSearchCommand(globalState)
+        return
+    }
     if (!process.argv[2]) {
         executeRootCommand(globalState)
     } else if (process.argv[2] === 'add') {

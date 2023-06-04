@@ -11,7 +11,7 @@ export function createPost(
 ): string {
     const formattedDate = new Date(createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric' })
 
-    const image = kind === 'highlight' ? '' : `<a href="${path}"><img class="article-banner" src="${banner}"></a>`
+    const image = kind === 'highlight' ? '' : `<a href="${path}"><img class="image-16-9" src="${banner}"></a>`
     const meta =
         kind === 'highlight'
             ? `<p class="article-timestamp">${formattedDate}</p>`

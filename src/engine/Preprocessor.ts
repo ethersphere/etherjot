@@ -2,7 +2,12 @@ import { Strings } from 'cafe-utility'
 import { GlobalState } from './GlobalState'
 import { uploadImage } from './ImageUploader'
 
-export async function preprocess(html: string, globalState: GlobalState): Promise<string> {
+interface PreprocessedPage {
+    html: string
+    tableOfContents: string[]
+}
+
+export async function preprocess(html: string, globalState: GlobalState): Promise<PreprocessedPage> {
     const images = Strings.extractAllBlocks(html, {
         opening: '<img src="',
         closing: '"'
@@ -19,5 +24,10 @@ export async function preprocess(html: string, globalState: GlobalState): Promis
         }
         html = html.replace(image, `<img src="../${relativeSrc}"`)
     }
-    return html
+    const tableOfContents = Strings.extractAllBlocks(html, {
+        opening: 'id="',
+        closing: '"',
+        exclusive: true
+    })
+    return { html, tableOfContents }
 }

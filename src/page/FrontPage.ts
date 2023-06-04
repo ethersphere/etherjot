@@ -13,9 +13,11 @@ export async function createFrontPage(globalState: GlobalState): Promise<{ swarm
     const body = `
     ${createHeader(globalState, 0, 'Latest')}
     <main>
-        ${createPostContainer(globalState)}
+        <div class="content-area">
+            ${createPostContainer(globalState)}
+        </div>
     </main>
-    ${createFooter(globalState)}`
+    ${createFooter(globalState, 0)}`
     const html = createHtml5(head, body)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     await exportToWeb2('index.html', html)
