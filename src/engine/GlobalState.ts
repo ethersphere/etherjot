@@ -7,6 +7,7 @@ import { MantarayNode } from 'mantaray-js'
 import { homedir } from 'os'
 import { join } from 'path'
 import { createDefaultImage } from '../html/DefaultImage'
+import { createFavicon } from '../html/Favicon'
 import { createArticleFontData, createBrandingFontData, createNormalFontData } from '../html/Font'
 import { createStyle } from '../html/Style'
 import { createFrontPage } from '../page/FrontPage'
@@ -68,6 +69,7 @@ interface GlobalStateOnDisk {
     styleReference: string
     font: FontCollection
     defaultCoverImage: string
+    favicon: string
     pages: Page[]
     articles: Article[]
     images: Record<string, string>
@@ -84,6 +86,7 @@ export interface GlobalState {
     styleReference: string
     font: FontCollection
     defaultCoverImage: string
+    favicon: string
     pages: Page[]
     articles: Article[]
     images: Record<string, string>
@@ -129,6 +132,7 @@ export async function getGlobalState(websiteName?: string): Promise<GlobalState>
             article: Types.asString(Types.asObject(json.font).article)
         },
         defaultCoverImage: Types.asString(json.defaultCoverImage),
+        favicon: Types.asString(json.favicon),
         pages: Types.asArray(json.pages).map((x: any) => ({
             title: Types.asString(x.title),
             markdown: Types.asString(x.markdown),
@@ -164,6 +168,7 @@ export async function saveGlobalState(globalState: GlobalState): Promise<void> {
         styleReference: globalState.styleReference,
         font: globalState.font,
         defaultCoverImage: globalState.defaultCoverImage,
+        favicon: globalState.favicon,
         pages: globalState.pages,
         articles: globalState.articles,
         images: globalState.images,
@@ -185,6 +190,7 @@ async function createDefaultGlobalState(websiteName?: string): Promise<void> {
     const fontArticleResults = await bee.uploadData(stamp, createArticleFontData())
     const styleResults = await bee.uploadData(stamp, createStyle())
     const defaultCoverImageResults = await bee.uploadData(stamp, createDefaultImage())
+    const faviconResults = await bee.uploadData(stamp, createFavicon())
     if (!websiteName) {
         websiteName = (await inquirer
             .prompt({
@@ -208,6 +214,7 @@ async function createDefaultGlobalState(websiteName?: string): Promise<void> {
             article: fontArticleResults.reference
         },
         defaultCoverImage: defaultCoverImageResults.reference,
+        favicon: faviconResults.reference,
         configuration: {
             title: websiteName
         },
@@ -240,6 +247,7 @@ async function createGlobalState(globalStateOnDisk: GlobalStateOnDisk): Promise<
         styleReference: globalStateOnDisk.styleReference,
         font: globalStateOnDisk.font,
         defaultCoverImage: globalStateOnDisk.defaultCoverImage,
+        favicon: globalStateOnDisk.favicon,
         stamp,
         pages: globalStateOnDisk.pages,
         articles: globalStateOnDisk.articles,

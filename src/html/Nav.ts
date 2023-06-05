@@ -12,7 +12,7 @@ export function createNav(globalState: GlobalState, depth: number, active: strin
     return `<nav>${categories
         .map(
             x =>
-                `<a href="${'../'.repeat(depth)}${Strings.slugify(x)}" class="${
+                `<a href="${'../'.repeat(depth)}${Strings.slugify(x, Strings.isChinese)}" class="${
                     active === x ? 'nav-item nav-item-active' : 'nav-item'
                 }">${x}</a>`
         )

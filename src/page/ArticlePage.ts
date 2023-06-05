@@ -9,7 +9,6 @@ import { createHeader } from '../html/Header'
 import { createHtml5 } from '../html/Html5'
 import { createLinkSvg } from '../html/LinkSvg'
 import { createLinkedinSvg } from '../html/LinkedinSvg'
-import { createNewsletterCode } from '../html/Newsletter'
 import { createRelatedArticles } from '../html/RelatedArticles'
 import { createStyleSheet } from '../html/StyleSheet'
 import { createTagCloud } from '../html/TagCloud'
@@ -91,8 +90,7 @@ export async function createArticlePage(
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 1000
-              });
-              
+              })
               Toast.fire({
                 icon: 'success',
                 title: 'Copied to clipboard'
@@ -104,17 +102,14 @@ export async function createArticlePage(
         shareLinkedin.addEventListener('click', () => {
             window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url))
         })
-        function showNewsletterForm() {
-            ${createNewsletterCode()}
-        }
     </script>`
     const html = createHtml5(head, body)
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown.raw, 'index.md', {
         contentType: 'text/markdown'
     })
-    await exportToWeb2(`post/${Strings.slugify(title.slice(0, 80))}.html`, html)
+    await exportToWeb2(`post/${Strings.slugify(title.slice(0, 80), Strings.isChinese)}.html`, html)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
-    const path = `post/${Strings.slugify(title.slice(0, 80))}`
+    const path = `post/${Strings.slugify(title.slice(0, 80), Strings.isChinese)}`
     return {
         markdownReference: markdownResults.reference,
         swarmReference: htmlResults.reference,

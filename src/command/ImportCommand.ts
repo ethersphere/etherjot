@@ -77,7 +77,7 @@ export async function executeImportCommand(): Promise<GlobalState> {
             title,
             markdown: '',
             html: '',
-            path: Strings.slugify(Strings.getBasename(path)).slice(0, 42)
+            path: Strings.slugify(Strings.getBasename(path), Strings.isChinese).slice(0, 42)
         }
         globalState.pages = globalState.pages.filter(x => x.title !== title)
         globalState.pages.push(page)
@@ -117,7 +117,7 @@ export async function executeImportCommand(): Promise<GlobalState> {
             new Date(createdAt).toDateString()
         )
         globalState.articles = globalState.articles.filter(x => x.title !== title)
-        const slug = Strings.slugify(title)
+        const slug = Strings.slugify(title, Strings.isChinese)
         const pathSlug = Strings.before(Strings.afterLast(path, '/'), '.')
         const article: Article = {
             title,

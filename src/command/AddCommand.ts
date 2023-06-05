@@ -69,7 +69,7 @@ export async function executeAddCommand(globalState: GlobalState) {
             tags,
             wordCount: content.body.split(' ').length,
             createdAt: Date.now(),
-            path: `post/${Strings.slugify(title).slice(0, 80)}`,
+            path: `post/${Strings.slugify(title, Strings.isChinese).slice(0, 80)}`,
             banner,
             kind: 'regular'
         })
@@ -84,7 +84,7 @@ export async function executeAddCommand(globalState: GlobalState) {
             title,
             markdown: uploadResults.markdownReference,
             html: uploadResults.swarmReference,
-            path: Strings.slugify(title).slice(0, 42)
+            path: Strings.slugify(title, Strings.isChinese).slice(0, 42)
         }
         globalState.pages.push(page)
         console.log(`[Jot. 🐝] Successfully added page: ${title}`)

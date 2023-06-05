@@ -14,6 +14,7 @@ export async function preprocess(html: string, globalState: GlobalState): Promis
     })
     for (const image of images) {
         if (image.startsWith('<img src="http://') || image.startsWith('<img src="https://')) {
+            console.log('Skipping external image', image)
             continue
         }
         const src = image.substring('<img src="'.length, image.length - '"'.length)

@@ -11,22 +11,29 @@ import { createSearchPage } from '../page/SearchPage'
 import { GlobalState, getPath } from './GlobalState'
 import { exportToWeb2 } from './Web2Export'
 
+type OptionalPage = { swarmReference: string } | undefined
+
 export async function recreateMantaray(globalState: GlobalState): Promise<void> {
     if (globalState.doNotSave) {
         return
     }
     const node = globalState.mantaray
     const frontPage = await createFrontPage(globalState)
-    let searchPage: { swarmReference: string } | undefined
+    let searchPage: OptionalPage
+    let newsletterPage: OptionalPage
     if (await Files.existsAsync(getPath('.jot.search.json'))) {
         searchPage = await createSearchPage(globalState)
     }
-    const newsletterPage = await createNewsletterPage(globalState)
+    if (await Files.existsAsync(getPath('.jot.newsletter.html'))) {
+        newsletterPage = await createNewsletterPage(globalState)
+    }
     addToMantaray(node, 'index.html', frontPage.swarmReference)
     if (searchPage) {
         addToMantaray(node, 'search', searchPage.swarmReference)
     }
-    addToMantaray(node, 'newsletter', newsletterPage.swarmReference)
+    if (newsletterPage) {
+        addToMantaray(node, 'newsletter', newsletterPage.swarmReference)
+    }
     addToMantaray(node, '/', frontPage.swarmReference)
     addToMantaray(node, 'style.css', globalState.styleReference)
     addToMantaray(node, 'font-variant-1.ttf', globalState.font.branding)
@@ -36,6 +43,8 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
     addToMantaray(node, 'post/font-variant-2.woff2', globalState.font.menu)
     addToMantaray(node, 'post/font-variant-3.ttf', globalState.font.article)
     addToMantaray(node, 'default.png', globalState.defaultCoverImage)
+    addToMantaray(node, 'favicon.png', globalState.favicon)
+    addToMantaray(node, 'post/favicon.png', globalState.favicon)
     addToMantaray(node, 'post/default.png', globalState.defaultCoverImage)
     await exportToWeb2('style.css', createStyle())
     await exportToWeb2('default.png', createDefaultImage())
@@ -53,7 +62,7 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
         addToMantaray(node, article.path, article.html)
     }
     for (const collection of Object.keys(globalState.collections)) {
-        addToMantaray(node, Strings.slugify(collection), globalState.collections[collection])
+        addToMantaray(node, Strings.slugify(collection, Strings.isChinese), globalState.collections[collection])
     }
     for (const [src, reference] of Object.entries(globalState.images)) {
         addToMantaray(node, src, reference)

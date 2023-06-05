@@ -17,7 +17,7 @@
     "dependencies": {
         "@ethersphere/bee-js": "^6.0.0",
         "cafe-node-utility": "^1.1.0",
-        "cafe-utility": "9.9.0",
+        "cafe-utility": "^10.1.0",
         "ethereumjs-wallet": "^1.0.2",
         "inquirer": "8",
         "js-yaml": "^4.1.0",
