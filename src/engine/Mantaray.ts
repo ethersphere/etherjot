@@ -17,10 +17,15 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
     }
     const node = globalState.mantaray
     const frontPage = await createFrontPage(globalState)
-    const searchPage = await createSearchPage(globalState)
+    let searchPage: { swarmReference: string } | undefined
+    if (await Files.existsAsync(getPath('.jot.search.json'))) {
+        searchPage = await createSearchPage(globalState)
+    }
     const newsletterPage = await createNewsletterPage(globalState)
     addToMantaray(node, 'index.html', frontPage.swarmReference)
-    addToMantaray(node, 'search', searchPage.swarmReference)
+    if (searchPage) {
+        addToMantaray(node, 'search', searchPage.swarmReference)
+    }
     addToMantaray(node, 'newsletter', newsletterPage.swarmReference)
     addToMantaray(node, '/', frontPage.swarmReference)
     addToMantaray(node, 'style.css', globalState.styleReference)
@@ -32,11 +37,6 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
     addToMantaray(node, 'post/font-variant-3.ttf', globalState.font.article)
     addToMantaray(node, 'default.png', globalState.defaultCoverImage)
     addToMantaray(node, 'post/default.png', globalState.defaultCoverImage)
-    if (await Files.existsAsync(getPath('.jot.search.json'))) {
-        const search = await readFile(getPath('.jot.search.json'), 'utf-8')
-        const uploadResults = await globalState.bee.uploadData(globalState.stamp, search)
-        addToMantaray(node, 'search.json', uploadResults.reference)
-    }
     await exportToWeb2('style.css', createStyle())
     await exportToWeb2('default.png', createDefaultImage())
     await exportToWeb2('post/default.png', createDefaultImage())
