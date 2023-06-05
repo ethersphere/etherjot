@@ -18,7 +18,7 @@ export async function createCollectionPage(
         </div>
     </main>
     ${createFooter(globalState, 0)}`
-    const html = createHtml5(head, body)
+    const html = await createHtml5(head, body)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     return {
         swarmReference: htmlResults.reference

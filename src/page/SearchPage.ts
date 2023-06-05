@@ -57,7 +57,7 @@ export async function createSearchPage(globalState: GlobalState): Promise<{ swar
             }
         })
     </script>`
-    const html = createHtml5(head, body)
+    const html = await createHtml5(head, body)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     await exportToWeb2('search.html', html)
     return {

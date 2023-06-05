@@ -103,7 +103,7 @@ export async function createArticlePage(
             window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url))
         })
     </script>`
-    const html = createHtml5(head, body)
+    const html = await createHtml5(head, body)
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown.raw, 'index.md', {
         contentType: 'text/markdown'
     })
