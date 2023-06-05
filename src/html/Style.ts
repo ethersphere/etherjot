@@ -323,7 +323,7 @@ aside {
     text-decoration: none;
 }
 .tag:hover {
-    background-color: #666;
+    background-color: #e6e6e6;
 }
 .footer-info {
     color: #626262;

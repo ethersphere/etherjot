@@ -16,6 +16,7 @@
     "license": "MIT",
     "dependencies": {
         "@ethersphere/bee-js": "^6.0.0",
+        "axios": "^1.4.0",
         "cafe-node-utility": "^1.1.0",
         "cafe-utility": "^10.1.0",
         "ethereumjs-wallet": "^1.0.2",
