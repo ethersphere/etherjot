@@ -24,6 +24,7 @@ export async function executeImportCommand(): Promise<GlobalState> {
     console.log('Creating front page')
     const globalState = await getGlobalState(websiteName)
     Objects.setSomeDeep(globalState.configuration as any, 'header.link', jotConfiguration, 'link')
+    Objects.setSomeDeep(globalState.configuration as any, 'main.highlight', jotConfiguration, 'highlight')
     Objects.setSomeDeep(globalState.configuration as any, 'footer.description', jotConfiguration, 'footer')
     Objects.setSomeDeep(globalState.configuration as any, 'footer.links.discord', jotConfiguration, 'discord')
     Objects.setSomeDeep(globalState.configuration as any, 'footer.links.twitter', jotConfiguration, 'twitter')

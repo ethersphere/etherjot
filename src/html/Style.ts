@@ -50,6 +50,7 @@ nav {
     flex-direction: row;
     column-gap: 2px;
     align-items: center;
+    overflow-x: scroll;
 }
 header svg {
     height: 32px;
@@ -196,14 +197,14 @@ aside {
     padding-top: 100px;
     padding-bottom: 50px;
     margin-bottom: 80px;
+    padding-left: 32px;
+    padding-right: 32px;
 }
 .highlight h2 {
     font-size: 32px;
     max-width: 1280px;
     margin: 0 auto;
     margin-bottom: 40px;
-    padding-left: 32px;
-    padding-right: 32px;
 }
 .article-container {
     width: 100%;
@@ -300,6 +301,8 @@ aside {
     padding-left: 12px;
     padding-right: 12px;
     color: #111;
+    word-break: keep-all;
+    white-space: nowrap;
 }
 .nav-item:hover {
     color: #fff;

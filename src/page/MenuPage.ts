@@ -19,7 +19,7 @@ export async function createMenuPage(
         marked.parse(markdown),
         globalState
     )}</main>${createFooter(globalState, 0)}`
-    const html = createHtml5(head, body)
+    const html = await createHtml5(head, body)
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown, 'index.md', {
         contentType: 'text/markdown'
     })
