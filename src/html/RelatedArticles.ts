@@ -1,11 +1,14 @@
 import { Article, GlobalState } from '../engine/GlobalState'
 import { createPost } from './Post'
 
-export function createRelatedArticles(globalState: GlobalState, ignoreTitle: string, category: string): string {
+export function createRelatedArticles(globalState: GlobalState, ignoreTitle: string, category: string): string | null {
     const articles = globalState.articles
         .filter(x => x.categories.includes(category))
         .filter(x => x.title !== ignoreTitle)
         .slice(0, 4)
+    if (!articles.length) {
+        return null
+    }
     const innerHtml = `${articles.map(x => buildArticle(x, 'regular')).join('\n')}`
     return `
     <div class="post-container post-container-regular">

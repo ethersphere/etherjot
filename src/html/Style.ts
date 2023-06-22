@@ -354,6 +354,9 @@ aside {
 .onpage-banner {
     margin-bottom: 70px;
 }
+.no-content {
+    margin-bottom: 300px;
+}
 .grid-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);

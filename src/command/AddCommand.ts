@@ -1,11 +1,12 @@
 import { Files } from 'cafe-node-utility'
-import { Strings, Types } from 'cafe-utility'
+import { Types } from 'cafe-utility'
 import { parseMarkdown } from '../engine/FrontMatter'
 import { GlobalState } from '../engine/GlobalState'
 import { uploadImage } from '../engine/ImageUploader'
 import { getTagsOrCategories } from '../engine/Metadata'
 import { rebuildArticlePages, rebuildMenuPages } from '../engine/Rebuild'
-import { promptForOption, promptForText } from '../engine/SwarmUtility'
+import { promptForText } from '../engine/SwarmUtility'
+import { createArticleSlug } from '../engine/Utility'
 import { createArticlePage } from '../page/ArticlePage'
 import { createMenuPage } from '../page/MenuPage'
 
@@ -15,7 +16,7 @@ const intentions = {
 }
 
 export async function executeAddCommand(globalState: GlobalState) {
-    const type = await promptForOption('What would you like to do?', Object.values(intentions))
+    const type = intentions.addArticle
 
     if (type === intentions.addArticle) {
         await addNewArticle(globalState)
@@ -33,8 +34,12 @@ export async function executeAddCommand(globalState: GlobalState) {
     async function addNewArticle(globalState: GlobalState) {
         const fileContent = await Files.readUtf8FileAsync(process.argv[3])
         const content = parseMarkdown(fileContent)
-        const title =
-            Types.asString(content.attributes.title) || (await promptForText('What is the title of your article?'))
+        let title: string
+        if (Types.isString(content.attributes.title)) {
+            title = content.attributes.title
+        } else {
+            title = await promptForText('What is the title of your article?')
+        }
         const categories = getTagsOrCategories(content.attributes.categories)
         const tags = getTagsOrCategories(content.attributes.tags)
         if (globalState.articles.some(x => x.title === title)) {
@@ -69,7 +74,7 @@ export async function executeAddCommand(globalState: GlobalState) {
             tags,
             wordCount: content.body.split(' ').length,
             createdAt: Date.now(),
-            path: `post/${Strings.slugify(title, Strings.isChinese).slice(0, 80)}`,
+            path: `post/${createArticleSlug(title)}`,
             banner,
             kind: 'regular'
         })
@@ -84,7 +89,7 @@ export async function executeAddCommand(globalState: GlobalState) {
             title,
             markdown: uploadResults.markdownReference,
             html: uploadResults.swarmReference,
-            path: Strings.slugify(title, Strings.isChinese).slice(0, 42)
+            path: createArticleSlug(title)
         }
         globalState.pages.push(page)
         console.log(`[Jot. 🐝] Successfully added page: ${title}`)

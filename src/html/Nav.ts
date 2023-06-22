@@ -1,5 +1,5 @@
-import { Strings } from 'cafe-utility'
 import { GlobalState } from '../engine/GlobalState'
+import { createArticleSlug } from '../engine/Utility'
 
 export function createNav(globalState: GlobalState, depth: number, active: string) {
     const categorySet = globalState.articles.reduce((categories, article) => {
@@ -12,7 +12,7 @@ export function createNav(globalState: GlobalState, depth: number, active: strin
     return `<nav>${categories
         .map(
             x =>
-                `<a href="${'../'.repeat(depth)}${Strings.slugify(x, Strings.isChinese)}" class="${
+                `<a href="${'../'.repeat(depth)}${createArticleSlug(x)}" class="${
                     active === x ? 'nav-item nav-item-active' : 'nav-item'
                 }">${x}</a>`
         )

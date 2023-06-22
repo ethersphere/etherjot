@@ -15,10 +15,10 @@ export async function createMenuPage(
     swarmReference: string
 }> {
     const head = `<title>${title} | ${globalState.configuration.title}</title>${createStyleSheet(0)}`
-    const body = `${createHeader(globalState, 0, 'Latest')}<main>${await preprocess(
+    const body = `${await createHeader(globalState, 0, 'Latest')}<main>${await preprocess(
         marked.parse(markdown),
         globalState
-    )}</main>${createFooter(globalState, 0)}`
+    )}</main>${await createFooter(globalState, 0)}`
     const html = await createHtml5(head, body)
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown, 'index.md', {
         contentType: 'text/markdown'

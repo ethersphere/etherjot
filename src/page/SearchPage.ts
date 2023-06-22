@@ -9,7 +9,7 @@ import { createStyleSheet } from '../html/StyleSheet'
 export async function createSearchPage(globalState: GlobalState): Promise<{ swarmReference: string }> {
     const head = `<title>${globalState.configuration.title}</title>${createStyleSheet(0)}`
     const body = `
-    ${createHeader(globalState, 0, 'Latest')}
+    ${await createHeader(globalState, 0, 'Latest')}
     <main>
         <div class="grid-container content-area search">
             <div class="grid-3"></div>
@@ -22,7 +22,7 @@ export async function createSearchPage(globalState: GlobalState): Promise<{ swar
             </div>
         </div>
     </main>
-    ${createFooter(globalState, 0)}
+    ${await createFooter(globalState, 0)}
     <script>
         const searchData = ${await createSearchData()}
         const searchButton = document.getElementById('search-button')

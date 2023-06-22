@@ -1,10 +1,11 @@
+import { Files } from 'cafe-node-utility'
 import { Objects, Strings } from 'cafe-utility'
-import { GlobalState } from '../engine/GlobalState'
+import { GlobalState, getPath } from '../engine/GlobalState'
 import { createLogoSvg } from './LogoSvg'
 import { createNav } from './Nav'
 import { createSearchSvg } from './SearchSvg'
 
-export function createHeader(globalState: GlobalState, depth: number, active: string, variant = 'h1') {
+export async function createHeader(globalState: GlobalState, depth: number, active: string, variant = 'h1') {
     const title = Objects.getFirstDeep(globalState.configuration as any, ['header.title', 'title'])
     const description = Objects.getDeep(globalState.configuration as any, 'header.description')
     const link = Objects.getDeep(globalState.configuration as any, 'header.link')
@@ -18,6 +19,9 @@ export function createHeader(globalState: GlobalState, depth: number, active: st
             )}
         </div>`
         : ''
+    const searchHtml = (await Files.existsAsync(getPath('.jot.search.json')))
+        ? `<a href="${'../'.repeat(depth)}search">${createSearchSvg()}</a>`
+        : ''
 
     return `
     <header>
@@ -30,7 +34,7 @@ export function createHeader(globalState: GlobalState, depth: number, active: st
                     </div>
                 </a>
                 <div class="row">
-                    <a href="${'../'.repeat(depth)}search">${createSearchSvg()}</a>
+                    ${searchHtml}
                     ${linkHtml}
                 </div>
             </div>

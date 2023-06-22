@@ -9,6 +9,7 @@ import { createFrontPage } from '../page/FrontPage'
 import { createNewsletterPage } from '../page/NewsletterPage'
 import { createSearchPage } from '../page/SearchPage'
 import { GlobalState, getPath } from './GlobalState'
+import { createArticleSlug } from './Utility'
 import { exportToWeb2 } from './Web2Export'
 
 type OptionalPage = { swarmReference: string } | undefined
@@ -62,7 +63,7 @@ export async function recreateMantaray(globalState: GlobalState): Promise<void> 
         addToMantaray(node, article.path, article.html)
     }
     for (const collection of Object.keys(globalState.collections)) {
-        addToMantaray(node, Strings.slugify(collection, Strings.isChinese), globalState.collections[collection])
+        addToMantaray(node, createArticleSlug(collection), globalState.collections[collection])
     }
     for (const [src, reference] of Object.entries(globalState.images)) {
         addToMantaray(node, src, reference)

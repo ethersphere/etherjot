@@ -12,6 +12,7 @@ import { createArticleFontData, createBrandingFontData, createNormalFontData } f
 import { createStyle } from '../html/Style'
 import { createFrontPage } from '../page/FrontPage'
 import { recreateMantaray } from './Mantaray'
+import { promptForText } from './SwarmUtility'
 
 interface FontCollection {
     menu: string
@@ -97,7 +98,8 @@ export interface GlobalState {
 
 export async function getGlobalState(websiteName?: string): Promise<GlobalState> {
     if (!(await Files.existsAsync(getPath()))) {
-        await createDefaultGlobalState(websiteName)
+        const newWebsiteName = websiteName || (await promptForText('What is the name of your website?'))
+        await createDefaultGlobalState(newWebsiteName)
     }
     const json = await Files.readJsonAsync(getPath())
     const configuration = Types.asObject(json.configuration)

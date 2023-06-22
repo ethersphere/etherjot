@@ -11,13 +11,13 @@ export async function createCollectionPage(
 ): Promise<{ swarmReference: string }> {
     const head = `<title>${globalState.configuration.title} | ${collectionName} Posts</title>${createStyleSheet(0)}`
     const body = `
-    ${createHeader(globalState, 0, collectionName)}
+    ${await createHeader(globalState, 0, collectionName)}
     <main>
         <div class="content-area">
             ${createPostContainer(globalState, collectionName)}
         </div>
     </main>
-    ${createFooter(globalState, 0)}`
+    ${await createFooter(globalState, 0)}`
     const html = await createHtml5(head, body)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
     return {

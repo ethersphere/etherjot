@@ -3,6 +3,7 @@ import { marked } from 'marked'
 import { ParsedMarkdown } from '../engine/FrontMatter'
 import { GlobalState } from '../engine/GlobalState'
 import { preprocess } from '../engine/Preprocessor'
+import { createArticleSlug } from '../engine/Utility'
 import { exportToWeb2 } from '../engine/Web2Export'
 import { createFooter } from '../html/Footer'
 import { createHeader } from '../html/Header'
@@ -27,9 +28,16 @@ export async function createArticlePage(
     path: string
 }> {
     const processedArticle = await preprocess(marked.parse(markdown.body), globalState)
+    const sidebarPublishedHtml = tagsAndCategories.length
+        ? `<div class="article-sidebar-block"><h3>Published in:</h3>${createTagCloud(tagsAndCategories, 1)}</div>`
+        : ``
+    const relatedArticlesHtml = createRelatedArticles(globalState, title, tagsAndCategories[0] || '')
+    const readMoreHtml = relatedArticlesHtml
+        ? `<div class="content-area"><h2 class="read-more">Read more...</h2>${relatedArticlesHtml}</div>`
+        : ``
     const head = `<title>${title} | ${globalState.configuration.title}</title>${createStyleSheet(1)}`
     const body = `
-    ${createHeader(globalState, 1, 'Latest', 'p')}
+    ${await createHeader(globalState, 1, 'Latest', 'p')}
     <main>
         <article>
             <div class="content-area grid-container">
@@ -55,10 +63,7 @@ export async function createArticlePage(
                                     .join('')}
                             </div>
                         </div>
-                        <div class="article-sidebar-block">
-                            <h3>Published in:</h3>
-                            ${createTagCloud(tagsAndCategories, 1)}
-                        </div>
+                        ${sidebarPublishedHtml}
                         <div class="article-sidebar-block">
                             <h3>Share to:</h3>
                             <span id="share-link" class="pointer">${createLinkSvg()}</span>
@@ -72,12 +77,9 @@ export async function createArticlePage(
                 </div>
             </div>
         </article>
-        <div class="content-area">
-            <h2 class="read-more">Read more...</h2>
-            ${createRelatedArticles(globalState, title, tagsAndCategories[0] || '')}
-        </div>
+        ${readMoreHtml}
     </main>
-    ${createFooter(globalState, 1)}
+    ${await createFooter(globalState, 1)}
     <script>
         const shareLink = document.getElementById('share-link')
         const shareTwitter = document.getElementById('share-twitter')
@@ -107,9 +109,9 @@ export async function createArticlePage(
     const markdownResults = await globalState.bee.uploadFile(globalState.stamp, markdown.raw, 'index.md', {
         contentType: 'text/markdown'
     })
-    await exportToWeb2(`post/${Strings.slugify(title.slice(0, 80), Strings.isChinese)}.html`, html)
+    await exportToWeb2(`post/${createArticleSlug(title)}.html`, html)
     const htmlResults = await globalState.bee.uploadData(globalState.stamp, html)
-    const path = `post/${Strings.slugify(title.slice(0, 80), Strings.isChinese)}`
+    const path = `post/${createArticleSlug(title)}`
     return {
         markdownReference: markdownResults.reference,
         swarmReference: htmlResults.reference,

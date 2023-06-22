@@ -6,6 +6,7 @@ import toml from 'toml'
 import { parseMarkdown } from '../engine/FrontMatter'
 import { Article, GlobalState, getGlobalState } from '../engine/GlobalState'
 import { uploadImage } from '../engine/ImageUploader'
+import { createArticleSlug } from '../engine/Utility'
 import { createArticlePage } from '../page/ArticlePage'
 import { createFrontPage } from '../page/FrontPage'
 import { createMenuPage } from '../page/MenuPage'
@@ -78,7 +79,7 @@ export async function executeImportCommand(): Promise<GlobalState> {
             title,
             markdown: '',
             html: '',
-            path: Strings.slugify(Strings.getBasename(path), Strings.isChinese).slice(0, 42)
+            path: createArticleSlug(Strings.getBasename(path))
         }
         globalState.pages = globalState.pages.filter(x => x.title !== title)
         globalState.pages.push(page)
@@ -118,7 +119,7 @@ export async function executeImportCommand(): Promise<GlobalState> {
             new Date(createdAt).toDateString()
         )
         globalState.articles = globalState.articles.filter(x => x.title !== title)
-        const slug = Strings.slugify(title, Strings.isChinese)
+        const slug = createArticleSlug(title)
         const pathSlug = Strings.before(Strings.afterLast(path, '/'), '.')
         const article: Article = {
             title,

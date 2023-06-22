@@ -1,5 +1,6 @@
+import { Files } from 'cafe-node-utility'
 import { Objects, Strings } from 'cafe-utility'
-import { GlobalState } from '../engine/GlobalState'
+import { GlobalState, getPath } from '../engine/GlobalState'
 import { createDiscordSvg } from './DiscordSvg'
 import { createGithubSvg } from './GithubSvg'
 import { createHomeSvg } from './HomeSvg'
@@ -10,7 +11,7 @@ import { createSwarmSvg } from './SwarmSvg'
 import { createTwitterSvg } from './TwitterSvg'
 import { createYoutubeSvg } from './YoutubeSvg'
 
-export function createFooter(globalState: GlobalState, depth: number) {
+export async function createFooter(globalState: GlobalState, depth: number) {
     const description = Objects.getDeep(globalState.configuration as any, 'footer.description')
     const descriptionHtml = description ? `<p class="footer-description">${description}</p>` : ''
     const discord = Objects.getDeep(globalState.configuration as any, 'footer.links.discord')
@@ -30,9 +31,12 @@ export function createFooter(globalState: GlobalState, depth: number) {
               (_, link) => `<a class="footer-link" href="${link}" target="_blank">${createHomeSvg()} Visit website</a>`
           )}`
         : ''
-    const newsletterHtml = `<a class="footer-link" href="${'../'.repeat(
-        depth
-    )}newsletter" target="_blank">${createNewsletterSvg()} Newsletter</a>`
+    const newsletterHtml = (await Files.existsAsync(getPath('.jot.newsletter.html')))
+        ? `<a class="footer-link" href="${'../'.repeat(
+              depth
+          )}newsletter" target="_blank">${createNewsletterSvg()} Newsletter</a>`
+        : ''
+
     return `
     <footer>
         <div class="grid-container content-area">
