@@ -1,43 +1,21 @@
-# Etherjot
+# Etherjot Importer
 
-Focus on writing and publish to Swarm with ease.
+Etherjot is a CLI utility to import Hugo and Jekyll blogs onto the Swarm network and [Etherjot Web](https://github.com/ethersphere/etherjot-web). Most of the implementation is available in the core library [Libetherjot](https://github.com/ethersphere/libetherjot).
 
-## Overview
+## Swarm network
 
-Etherjot enables you to effortlessly create a blog on Swarm. It takes care of the publishing process and layout, allowing you to focus on writing. You can easily add article pages and menu pages one at a time. If you have a markdown file ready to be published, simply use a straightforward command, and it will be accessible on your website.
+Swarm is a peer-to-peer network of Bee nodes that collectively provide censorship resistant decentralised storage and communication services.
 
-## Requirements
+## Usage
 
--   NodeJS version 16 or above
--   A running instance of [Bee](https://github.com/ethersphere/bee)
--   A usable [postage batch](https://docs.ethswarm.org/docs/access-the-swarm/keep-your-data-alive)
+Etherjot requires a local Bee node. The easiest way to fire up a node is to install [Swarm Desktop](https://github.com/ethersphere/swarm-desktop) which you can download from `https://desktop.ethswarm.org`.
 
-We recommend using [Swarm Desktop](https://www.ethswarm.org/build/desktop) to easily setup Bee.
+```
+npm install --global etherjot
+```
 
-## Creating your front page
+Step into the directory of a Hugo and Jekyll blog
 
-To create your homepage, simply execute `npx etherjot`.
-
-The address you obtain is based on a [Swarm feed](https://docs.ethswarm.org/docs/dapps-on-swarm/feeds), ensuring that the address remains constant while always displaying the latest version of your blog. Share this address with your audience to provide them with continuous access to your most recent updates.
-
-## Commands
-
-Manage your articles and menu pages using two essential commands:
-
-`npx etherjot add <path-to-markdown-file>`
-
-`npx etherjot remove`
-
-Import existing Jekyll or Hugo blog:
-
-`npx etherjot import`
-
-## Examples
-
-### Front page
-
-![Screenshot of front page](docs/home.png)
-
-### Article
-
-![Screenshot of front page](docs/article.png)
+```
+etherjot import
+```
